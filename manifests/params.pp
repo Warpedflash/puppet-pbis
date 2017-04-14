@@ -1,7 +1,7 @@
 class pbis::params {
 
   # package options
-  $repository            = 'http://repo.pbis.beyondtrust.com'
+  $repository            = 'https://repo.pbis.beyondtrust.com'
   $product_name          = 'pbis'
   $product_class         = 'open'
   $package               = "${product_name}-${product_class}"
@@ -9,8 +9,8 @@ class pbis::params {
   $legacy_package        = "${package}-legacy"
   $gui_package           = "${package}-gui"
   $version               = '8.5'
-  $version_qfe           = '1'
-  $version_build         = '206'
+  $version_qfe           = '3'
+  $version_build         = '293'
   $package_version       = "${version}.${version_qfe}-${version_build}"
   $service_name          = 'lwsmd'
   # expect 'yum' or 'wget' below.  'wget' performs the 2016-11-15 and earlier install of wget + rpm -Uvh
@@ -33,8 +33,14 @@ class pbis::params {
   $skeleton_dirs         = '/etc/skel'
   $user_domain_prefix    = undef
 
+  # Added by EV 3/16/2016
+  # Adding PBIS parameter "SyncSystemTime" - can be either true or false (default)
+  # Set to 'false' to allow NTPD daemon sync the machine's time
+  $sync_system_time  = false
+
   # update-dns options
-  $dns_ipaddress         = undef
+  #$dns_ipaddress         = undef
+  $dns_ipaddress         = $ipaddress_ens32  # forces using ens32 address, so that multi-homed hosts don't register all addresses
   $dns_ipv6address       = undef
 
   if !( $::architecture in ['amd64', 'x86_64', 'i386', 'ppc64', 'ppc64le',] ) {
@@ -44,12 +50,15 @@ class pbis::params {
   case $product_class {
     'open': {
         $repo_class = 'pbiso'
+        $version_file = "/opt/pbis/data/VERSION"
     }
     'enterprise': {
         $repo_class = 'pbise'
+        $version_file = "/opt/pbis/data/ENTERPRISE_VERSION"
     }
     default:  {
         $repo_class = 'pbiso'
+        $version_file = "/opt/pbis/data/VERSION"
     }
   }
 
@@ -99,4 +108,5 @@ class pbis::params {
   $upgrade_package_file =
     "${upgrade_package}-${package_version}.linux.${::architecture}.${package_format}.sh"
   $repo_source = "${repository}/${repo_base}/${repo_class}.${repo_ext}"
+  notice("using repo_srouce: ${repo_source}")
 }
